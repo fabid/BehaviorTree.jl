@@ -1,0 +1,8 @@
+name = "BehaviorTree"
+uuid = "f69da737-dcaa-4055-be2f-aa6e9fbb4bc4"
+authors = ["Fabian D <fabian@datamaplab.com>"]
+version = "0.1.0"
+
+[deps]
+AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
