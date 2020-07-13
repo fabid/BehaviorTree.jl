@@ -6,16 +6,21 @@ abstract type BT end
 
 struct Sequence <: BT
     tasks
+    name::String
 end
 struct Selector <: BT
     tasks
+    name::String
 end
+Sequence(tasks) = Sequence(tasks, "")
+Selector(tasks) = Selector(tasks, "")
 function run_task(task::Function)
     task()
 end
 function run_task(task::BT)
     tick(task)
 end
+
 function tick(tree::Sequence)
     for task in tree.tasks
         result = run_task(task)
@@ -40,10 +45,20 @@ function AbstractTrees.children(tree::BT)
 end
 
 function AbstractTrees.printnode(io::IO, node::Sequence)
-    print(io, "->")
+    if node.name != ""
+        repr = "$(node.name) ->"
+    else
+        repr = "->"
+    end
+    print(io, repr)
 end
 function AbstractTrees.printnode(io::IO, node::Selector)
-    print(io, "?")
+    if node.name != ""
+        repr = "$(node.name) ?"
+    else
+        repr = "?"
+    end
+    print(io, repr)
 end
 
 export tick, Sequence, Selector
