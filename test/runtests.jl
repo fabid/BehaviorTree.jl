@@ -2,14 +2,20 @@ using BehaviorTree
 using AbstractTrees
 using Test
 
-
-
 function doSuccess()
     :success
 end
+
 function doFailure()
     :failure
 end
+function isPositive(x)
+    if x>0
+        return :success
+    end
+    :failure
+end
+
 @testset "BehaviorTree.jl" begin
     tree = Sequence([doSuccess])
     @test tick(tree) == :success
@@ -27,8 +33,11 @@ end
     # nesting
     tree = Selector([doFailure, Sequence([doSuccess]), doFailure])
     @test tick(tree) == :success
-    #@test printnode(tree) == "->"
-    #@test Sequence([]).tick() == :success
-    #@test Sequence([x -> :success]) == :success
-    #@test Sequence([x -> :fail]) == :fail
+    # args
+    tree = Sequence([isPositive])
+    @test tick(tree, 1) == :success
+    @test tick(tree, -1) == :failure
+    tree = Selector([isPositive])
+    @test tick(tree, 1) == :success
+    @test tick(tree, -1) == :failure
 end

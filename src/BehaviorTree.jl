@@ -17,27 +17,54 @@ Selector(tasks) = Selector(tasks, "")
 function run_task(task::Function)
     task()
 end
+function run_task(task::Function, state)
+    task(state)
+end
 function run_task(task::BT)
     tick(task)
 end
 
-function tick(tree::Sequence)
+function run_task(task::BT, state)
+    tick(task, state)
+end
+
+function sequence(tree::Sequence, task_runner)
     for task in tree.tasks
-        result = run_task(task)
+        result = task_runner(task)
         if result == :failure
             return :failure
         end
     end
     return :success
 end
-function tick(tree::Selector)
+
+function tick(tree::Sequence)
+    task_runner(x) = run_task(x)
+    sequence(tree, task_runner)
+end
+
+function tick(tree::Sequence, state)
+    task_runner(x) = run_task(x, state)
+    sequence(tree, task_runner)
+end
+
+function selector(tree::Selector, task_runner)
     for task in tree.tasks
-        result = run_task(task)
+        result = task_runner(task)
         if result == :success
             return :success
         end
     end
     return :failure
+end
+function tick(tree::Selector)
+    task_runner(x) = run_task(x)
+    selector(tree, task_runner)
+end
+
+function tick(tree::Selector, state)
+    task_runner(x) = run_task(x, state)
+    selector(tree, task_runner)
 end
 
 function AbstractTrees.children(tree::BT)
