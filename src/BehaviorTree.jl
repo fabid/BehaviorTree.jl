@@ -31,6 +31,9 @@ end
 function sequence(tree::Sequence, task_runner)
     for task in tree.tasks
         result = task_runner(task)
+        if result == :running
+            return :running
+        end
         if result == :failure
             return :failure
         end
@@ -51,6 +54,9 @@ end
 function selector(tree::Selector, task_runner)
     for task in tree.tasks
         result = task_runner(task)
+        if result == :running
+            return :running
+        end
         if result == :success
             return :success
         end
