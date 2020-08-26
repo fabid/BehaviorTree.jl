@@ -15,6 +15,7 @@ end
 Sequence(tasks) = Sequence(tasks, "")
 Selector(tasks) = Selector(tasks, "")
 function run_task(task::Function)
+    @debug("RUNNING task $(task)")
     task()
 end
 function run_task(task::Function, state)
@@ -28,13 +29,22 @@ function run_task(task::BT, state)
     tick(task, state)
 end
 
+function format(task::BT)
+    task.name
+end
+function format(task::Function)
+    string(task)
+end
+
 function sequence(tree::Sequence, task_runner)
+    @debug("RUNNING sequence $(tree.name)")
     for task in tree.tasks
         result = task_runner(task)
         if result == :running
             return :running
         end
         if result == :failure
+            @info("sequence $(tree.name) failed at $(format(task))")
             return :failure
         end
     end
@@ -52,12 +62,14 @@ function tick(tree::Sequence, state)
 end
 
 function selector(tree::Selector, task_runner)
+    @debug("RUNNING selector $(tree.name)")
     for task in tree.tasks
         result = task_runner(task)
         if result == :running
             return :running
         end
         if result == :success
+            @info("selector $(tree.name) succeeded at $(format(task))")
             return :success
         end
     end
