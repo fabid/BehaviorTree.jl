@@ -41,6 +41,7 @@ function sequence(tree::Sequence, task_runner)
     for task in tree.tasks
         result = task_runner(task)
         if result == :running
+            @info("sequence $(tree.name) running at $(format(task))")
             return :running
         end
         if result == :failure
@@ -66,6 +67,7 @@ function selector(tree::Selector, task_runner)
     for task in tree.tasks
         result = task_runner(task)
         if result == :running
+            @info("selector $(tree.name) running at $(format(task))")
             return :running
         end
         if result == :success
