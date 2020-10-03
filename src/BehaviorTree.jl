@@ -94,6 +94,7 @@ function tick(tree::Selector, state)
 end
 
 include("abstractrees.jl")
+include("visualization.jl")
 
 export tick, Sequence, Selector
 end # module
