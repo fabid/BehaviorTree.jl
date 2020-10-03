@@ -1,6 +1,5 @@
 module BehaviorTree
 using AbstractTrees
-import AbstractTrees: children, printnode
 
 abstract type BT end
 
@@ -16,10 +15,13 @@ Sequence(tasks) = Sequence(tasks, "")
 Selector(tasks) = Selector(tasks, "")
 function run_task(task::Function)
     @debug("RUNNING task $(task)")
-    task()
+    result = task()
+    return result, result
 end
 function run_task(task::Function, state)
-    task(state)
+    @debug("RUNNING task $(task)")
+    result = task(state)
+    return result, result
 end
 function run_task(task::BT)
     tick(task)
@@ -38,18 +40,20 @@ end
 
 function sequence(tree::Sequence, task_runner)
     @debug("RUNNING sequence $(tree.name)")
+    results = []
     for task in tree.tasks
-        result = task_runner(task)
+        result, status = task_runner(task)
+        push!(results, status)
         if result == :running
             @info("sequence $(tree.name) running at $(format(task))")
-            return :running
+            return :running, results
         end
         if result == :failure
             @info("sequence $(tree.name) failed at $(format(task))")
-            return :failure
+            return :failure, results
         end
     end
-    return :success
+    return :success, results
 end
 
 function tick(tree::Sequence)
@@ -64,18 +68,20 @@ end
 
 function selector(tree::Selector, task_runner)
     @debug("RUNNING selector $(tree.name)")
+    results = []
     for task in tree.tasks
-        result = task_runner(task)
+        result, status = task_runner(task)
+        push!(results, status)
         if result == :running
             @info("selector $(tree.name) running at $(format(task))")
-            return :running
+            return :running, results
         end
         if result == :success
             @info("selector $(tree.name) succeeded at $(format(task))")
-            return :success
+            return :success, results
         end
     end
-    return :failure
+    return :failure, results
 end
 function tick(tree::Selector)
     task_runner(x) = run_task(x)
@@ -87,26 +93,7 @@ function tick(tree::Selector, state)
     selector(tree, task_runner)
 end
 
-function AbstractTrees.children(tree::BT)
-    tree.tasks
-end
-
-function AbstractTrees.printnode(io::IO, node::Sequence)
-    if node.name != ""
-        repr = "$(node.name) ->"
-    else
-        repr = "->"
-    end
-    print(io, repr)
-end
-function AbstractTrees.printnode(io::IO, node::Selector)
-    if node.name != ""
-        repr = "$(node.name) ?"
-    else
-        repr = "?"
-    end
-    print(io, repr)
-end
+include("abstractrees.jl")
 
 export tick, Sequence, Selector
 end # module
