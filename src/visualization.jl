@@ -50,6 +50,7 @@ function toDotContent(tree, parent_id)
     end
     out
 end
+
 function toStatusDotContent(tree, parent_id)
     name = BehaviorTree.format(tree.tree.x)
     node_id = string(parent_id, replace(name, "!"=>""))
@@ -64,7 +65,13 @@ function toStatusDotContent(tree, parent_id)
     end
     shape = "box"
     label = if(typeof(tree.tree.x) == Selector) "?" else "->" end
-    color = colors[last(tree.shadow.x)]
+    #TODO: more efficient implementation?
+    lastchild = tree.shadow.x
+    while length(children(lastchild)) > 0
+        println(lastchild)
+        lastchild = last(children(lastchild))
+    end
+    color = colors[lastchild]
     out = string(
         """$node_id:n\n""",
         """$node_id [shape=$shape, label="$label", style=filled, color="$color"]\n""",

@@ -65,6 +65,23 @@ end
         doSuccess!
     ], "head")
     dot_graph = toDot(bt)
-    println(dot_graph)
-    png_graph =dot2png(dot_graph)
+    #println(dot_graph)
+    r = tick(bt)
+    #png_graph =dot2png(dot_graph)
+
+    bt = Selector([
+        doFailure,
+        Sequence([isTrue, doFailure, doSuccess], "choice"),
+        Sequence([isTrue, doSuccess, doRunning], "choice2"),
+        doSuccess!
+    ], "head")
+    dot_graph = toDot(bt)
+    r = tick(bt)
+    dot_graph_status = toDot(bt, r[2])
+    println(dot_graph_status)
+    png_graph = dot2png(dot_graph_status)
+    filename= "test.png"
+    open(filename, "w") do png_file
+        write(png_file, png_graph)
+    end
 end
