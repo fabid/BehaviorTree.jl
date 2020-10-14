@@ -25,67 +25,67 @@ colors = Dict(
     :success => "#49b156",
 )
 
-
-function toDotContent(tree::ShadowTree)
-    name = BehaviorTree.format(tree.tree.x)
-    if length(children(tree)) == 0
-        color = colors[tree.shadow.x]
-
-        shape = if startswith(name, "is") "ellipse" else "box" end
-        return string([
-            """$name:n\n""",
-            """$name [shape=$shape]\n""",
-            """$name [style=filled,color="$color"]\n"""
-        ]...)
-    end
-    #shape = if(typeof(tree.tree.x) == Selector) "diamond" else "hexagon" end
-    shape = "box"
-    label = if(typeof(tree.tree.x) == Selector) "?" else "->" end
-    color = colors[last(tree.shadow.x)]
-    @info color
-    out = string(
-        """$name:n\n""",
-        """$name [shape=$shape, label="$label", style=filled, color="$color"]\n""",
-        ["""$name -> $(toDotContent(c))\n""" for c in children(tree)]...)
-    @info out
-    out
-end
-function toDotContent(task)
-    name = BehaviorTree.format(task)
-    shape = if startswith(name, "is") "ellipse" else "box" end
-    return string([
-        """$name:n\n""",
-        """$name [shape=$shape]\n""",
-        """$name []\n"""
-    ]...)
-end
-function toDotContent(tree::BehaviorTree.BT)
+function toDotContent(tree, parent_id)
     name = BehaviorTree.format(tree)
+    node_id = string(parent_id, replace(name, "!"=>""))
     if length(children(tree)) == 0
         shape = if startswith(name, "is") "ellipse" else "box" end
         return string([
-            """$name:n\n""",
-            """$name [shape=$shape]\n""",
-            """$name []\n"""
+            """$node_id:n\n""",
+            """$node_id [shape=$shape, label="$name"]\n""",
+            """$parent_id -> $node_id""",
         ]...)
     end
     shape = "box"
     label = if(typeof(tree) == Selector) "?" else "->" end
     out = string(
-        """$name:n\n""",
-        """$name [shape=$shape, label="$label"]\n""",
-        ["""$name -> $(toDotContent(c))\n""" for c in children(tree)]...)
+        """$node_id:n\n""",
+        """$node_id [shape=$shape, label="$label"]\n""",
+        ["""$(toDotContent(c, node_id))\n""" for c in children(tree)]...)
+    if parent_id != ""
+        out = string(
+            out,
+            """$parent_id -> $node_id""",
+        )
+    end
+    out
+end
+function toStatusDotContent(tree, parent_id)
+    name = BehaviorTree.format(tree.tree.x)
+    node_id = string(parent_id, replace(name, "!"=>""))
+    if length(children(tree)) == 0
+        shape = if startswith(name, "is") "ellipse" else "box" end
+        color = colors[tree.shadow.x]
+        return string([
+            """$node_id:n\n""",
+            """$node_id [shape=$shape, label="$name", style=filled,color="$color"]\n""",
+            """$parent_id -> $node_id""",
+        ]...)
+    end
+    shape = "box"
+    label = if(typeof(tree.tree.x) == Selector) "?" else "->" end
+    color = colors[last(tree.shadow.x)]
+    out = string(
+        """$node_id:n\n""",
+        """$node_id [shape=$shape, label="$label", style=filled, color="$color"]\n""",
+        ["""$(toStatusDotContent(c, node_id))\n""" for c in children(tree)]...)
+    if parent_id != ""
+        out = string(
+            out,
+            """$parent_id -> $node_id""",
+        )
+    end
     out
 end
 function toDot(tree::BT, results)
     st = ShadowTree(tree, results)
-    content = toDotContent(st)
+    content = toStatusDotContent(st, "")
     return """digraph tree {
     $(content)
     }"""
 end
-function toDot(tree::BehaviorTree.BT)
-    content = toDotContent(tree)
+function toDot(tree::BT)
+    content = toDotContent(tree, "")
     return """digraph tree {
     $(content)
     }"""

@@ -5,6 +5,12 @@ using Test
 function doSuccess()
     :success
 end
+function isTrue()
+    :success
+end
+function doSuccess!()
+    :success
+end
 
 function doFailure()
     :failure
@@ -50,4 +56,15 @@ end
     tree = Selector([isPositive])
     @test tick(tree, 1)[1] == :success
     @test tick(tree, -1)[1] == :failure
+end
+@testset "dot" begin
+    bt = Selector([
+        doFailure,
+        Sequence([isTrue, doFailure, doSuccess], "choice"),
+        doRunning,
+        doSuccess!
+    ], "head")
+    dot_graph = toDot(bt)
+    println(dot_graph)
+    png_graph =dot2png(dot_graph)
 end
