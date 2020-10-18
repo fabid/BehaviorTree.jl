@@ -16,8 +16,16 @@ function dot2png(dot_graph::AbstractString)
     close(proc.in)
     return read(proc.out, String)
 end
+function dot2jpg(dot_graph::AbstractString)
+    # Generate PNG image from DOT graph
+    validateGraphVizInstalled()
+    proc = open(`dot -Tjpg`, "r+")
+    write(proc.in, dot_graph)
+    close(proc.in)
+    return read(proc.out, String)
+end
 
-export dot2png
+export dot2png,dot2jpg
 
 colors = Dict(
     :failure =>"#ff9a20",
