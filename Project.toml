@@ -5,5 +5,6 @@ version = "0.3.2"
 
 [deps]
 AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
-D3Trees = "e3df1716-f71e-5df9-9e2d-98e193103c45"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+julia = "1.4"
