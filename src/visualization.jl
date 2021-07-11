@@ -76,7 +76,6 @@ function toStatusDotContent(tree, parent_id)
     #TODO: more efficient implementation?
     lastchild = tree.shadow.x
     while length(children(lastchild)) > 0
-        println(lastchild)
         lastchild = last(children(lastchild))
     end
     color = colors[lastchild]
