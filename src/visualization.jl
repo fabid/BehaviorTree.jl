@@ -59,12 +59,12 @@ function toDotContent(tree, parent_id)
     out
 end
 
-function toStatusDotContent(tree, parent_id)
-    name = BehaviorTree.format(tree.tree.x)
+function toStatusDotContent(tree, results, parent_id)
+    name = BehaviorTree.format(tree)
     node_id = string(parent_id, replace(name, "!"=>""))
     if length(children(tree)) == 0
         shape = if startswith(name, "is") "ellipse" else "box" end
-        color = colors[tree.shadow.x]
+        color = colors[results]
         return string([
             """$node_id:n\n""",
             """$node_id [shape=$shape, label="$name", style=filled,color="$color"]\n""",
@@ -72,9 +72,9 @@ function toStatusDotContent(tree, parent_id)
         ]...)
     end
     shape = "box"
-    label = if(typeof(tree.tree.x) == Selector) "?" else "->" end
+    label = if(typeof(tree) == Selector) "?" else "->" end
     #TODO: more efficient implementation?
-    lastchild = tree.shadow.x
+    lastchild = results
     while length(children(lastchild)) > 0
         lastchild = last(children(lastchild))
     end
@@ -82,7 +82,7 @@ function toStatusDotContent(tree, parent_id)
     out = string(
         """$node_id:n\n""",
         """$node_id [shape=$shape, label="$label", style=filled, color="$color"]\n""",
-        ["""$(toStatusDotContent(c, node_id))\n""" for c in children(tree)]...)
+        ["""$(toStatusDotContent(a, b, node_id))\n""" for (a,b) in zip(children(tree), children(results))]...)
     if parent_id != ""
         out = string(
             out,
@@ -92,8 +92,7 @@ function toStatusDotContent(tree, parent_id)
     out
 end
 function toDot(tree::BT, results)
-    st = ShadowTree(tree, results)
-    content = toStatusDotContent(st, "")
+    content = toStatusDotContent(tree, results, "")
     return """digraph tree {
     $(content)
     }"""
